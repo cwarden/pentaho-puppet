@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DataSources>
+  <DataSource>
+    <DataSourceName>Provider=Mondrian;DataSource=Pentaho</DataSourceName>
+    <DataSourceDescription>Pentaho BI Platform Datasources</DataSourceDescription>
+    <URL>http://localhost:8080/pentaho/Xmla?userid=joe&amp;password=password</URL>
+    <DataSourceInfo>Provider=mondrian</DataSourceInfo>
+    <ProviderName>PentahoXMLA</ProviderName>
+    <ProviderType>MDP</ProviderType>
+    <AuthenticationMode>Unauthenticated</AuthenticationMode>
+    <Catalogs>
+      <Catalog name="Social Media">
+        <DataSourceInfo>Provider=mondrian;DataSource=thinkup;EnableXmla=False</DataSourceInfo>
+        <Definition>solution:SwellPath/mondrian/social-media-schema.xml</Definition>
+      </Catalog>
+      <Catalog name="SEO">
+        <DataSourceInfo>Provider=mondrian;DataSource=datawarehouse</DataSourceInfo>
+        <Definition>solution:SwellPath/mondrian/seo-schema.xml</Definition>
+      </Catalog>
+    </Catalogs>
+  </DataSource>
+</DataSources>

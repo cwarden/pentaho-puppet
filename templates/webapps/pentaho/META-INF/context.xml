@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Context docbase="webapps/pentaho/" path="/pentaho" reloadable="true">
+        <Resource auth="Container" driverClassName="@JDBC_DRIVER@" factory="org.apache.commons.dbcp.BasicDataSourceFactory" maxActive="20" maxIdle="5" maxWait="10000" name="jdbc/Hibernate" password="@HIBERNATE_PASSWORD@" type="javax.sql.DataSource" url="@HIBERNATE_JDBC_URL@" username="@HIBERNATE_USER@" validationquery="select 1"/>
+                
+        <Resource auth="Container" driverClassName="@JDBC_DRIVER@" factory="org.apache.commons.dbcp.BasicDataSourceFactory" maxActive="20" maxIdle="5" maxWait="10000" name="jdbc/Quartz" password="@QUARTZ_PASSWORD@" type="javax.sql.DataSource" url="@QUARTZ_JDBC_URL@" username="@QUARTZ_USER@" validationquery="select 1"/>
+</Context>
+
