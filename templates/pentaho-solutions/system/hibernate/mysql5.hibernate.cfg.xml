@@ -12,10 +12,10 @@
   
     <!--  MySQL Configuration -->
     <property name="connection.driver_class">com.mysql.jdbc.Driver</property>
-    <property name="connection.url">@HIBERNATE_JDBC_URL@</property>
+	 <property name="connection.url"><%= hibernate_jdbc_url %></property>
     <property name="dialect">org.hibernate.dialect.MySQL5InnoDBDialect</property>
-    <property name="connection.username">@HIBERNATE_USER@</property>
-    <property name="connection.password">@HIBERNATE_PASSWORD@</property>
+	 <property name="connection.username"><%= hibernate_user %></property>
+	 <property name="connection.password"><%= hibernate_password %></property>
     <property name="connection.pool_size">10</property>
     <property name="show_sql">false</property>
     <property name="hibernate.jdbc.use_streams_for_binary">true</property>

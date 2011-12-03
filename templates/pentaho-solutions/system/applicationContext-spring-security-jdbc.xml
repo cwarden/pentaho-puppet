@@ -37,15 +37,15 @@
 	<!--  This is only for Hypersonic. Please update this section for any other database you are using -->
 	<bean id="dataSource"
 		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
-		<property name="driverClassName" value="@JDBC_DRIVER@" />
+		<property name="driverClassName" value="<%= jdbc_driver %>" />
 		<property name="url"
-			value="@HIBERNATE_JDBC_URL@" />
-		<property name="username" value="@HIBERNATE_USER@" />
-		<property name="password" value="@HIBERNATE_PASSWORD@" />
+			value="<%= hibernate_jdbc_url %>" />
+		<property name="username" value="<%= hibernate_user %>" />
+		<property name="password" value="<%= hibernate_password %>" />
 	</bean>
 
-  <bean id="passwordEncoder"
-    class="org.springframework.security.providers.encoding.PlaintextPasswordEncoder" />
- 
+	<bean id="passwordEncoder"
+		class="org.springframework.security.providers.encoding.PlaintextPasswordEncoder" />
+
 
 </beans>

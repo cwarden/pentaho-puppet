@@ -12,7 +12,7 @@
   * system/hibernate/oracle10g.hibernate.cfg.xml
   *
   -->
-    <config-file>system/hibernate/@HIBERNATE_DATABASE_TYPE@.hibernate.cfg.xml</config-file>
+	 <config-file>system/hibernate/<%= hibernate_database_type %>.hibernate.cfg.xml</config-file>
 
   <!--
   *

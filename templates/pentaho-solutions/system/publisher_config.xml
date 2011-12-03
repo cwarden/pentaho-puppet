@@ -15,5 +15,5 @@ password sufficiently difficult to guess. Also take care that the contents of
 this file are not generally available.
 -->
 <publisher-config>
-	<publisher-password>@PUBLISH_PASSWORD@</publisher-password>
+	<publisher-password><%= publish_password %></publisher-password>
 </publisher-config>
