@@ -1,0 +1,4 @@
+			<Catalog name="<%= title %>">
+				<DataSourceInfo>Provider=mondrian;DataSource=<%= datasource %>;EnableXmla=False</DataSourceInfo>
+				<Definition>solution:<%= solution %>/mondrian/<%= basename %></Definition>
+			</Catalog>

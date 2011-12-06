@@ -9,12 +9,3 @@
     <ProviderType>MDP</ProviderType>
     <AuthenticationMode>Unauthenticated</AuthenticationMode>
     <Catalogs>
-		<% scope.lookupvar('pentaho::config::catalogs').each do |catalog| %>
-			<Catalog name="<%= catalog['name'] %>">
-				<DataSourceInfo>Provider=mondrian;DataSource=<%= catalog['datasource'] %>;EnableXmla=False</DataSourceInfo>
-				<Definition>solution:<%= catalog['solution'] %>/mondrian/<%= catalog['schema'] %></Definition>
-			</Catalog>
-		<% end %>
-    </Catalogs>
-  </DataSource>
-</DataSources>
