@@ -1,6 +1,7 @@
 Class['pentaho::biserver'] -> Class['pentaho::config']
 Class['pentaho::biserver'] -> Class['pentaho::saiku']
 Class['pentaho::config'] -> Class['pentaho::database']
+Class['pentaho::config'] -> Class['pentaho::biserver::config_files']
 
 class pentaho::biserver($demos = true) {
   class { 'mysql': }
@@ -82,12 +83,6 @@ class pentaho::config(
   $publish_password,
   $hsql_dialect = 'org.hibernate.dialect.MySQLDialect'
 ) {
-  notify { 'tags':
-    message => inline_template('
-<% tags.each do |tag| -%>
-The tag <%= tag %> is part of the current scope
-<% end -%>')
-  }
 
   $hibernate_database_type = $database_type ? {
     /mysql5?/ => 'mysql5',
@@ -96,66 +91,77 @@ The tag <%= tag %> is part of the current scope
     /hsql/          => 'hsql'
   }
 
-  if tagged('pentaho::biserver') {
-    $hibernate_jdbc_url = "jdbc:${hibernate_database_type}://${database_host}:${database_port}/${hibernate_database}"
-    $quartz_jdbc_url = "jdbc:${hibernate_database_type}://${database_host}:${database_port}/${quartz_database}"
 
-    file {
-      "/opt/pentaho/biserver-ce/tomcat/conf/server.xml":
-        content => template("pentaho/tomcat/conf/server.xml");
-      "/opt/pentaho/biserver-ce/tomcat/webapps/pentaho/META-INF/context.xml":
-        content => template("pentaho/tomcat/webapps/pentaho/META-INF/context.xml");
-      "/opt/pentaho/biserver-ce/tomcat/webapps/pentaho/WEB-INF/web.xml":
-        content => template("pentaho/tomcat/webapps/pentaho/WEB-INF/web.xml");
-      "/opt/pentaho/biserver-ce/pentaho-solutions/system/applicationContext-spring-security-jdbc.xml":
-        content => template("pentaho/pentaho-solutions/system/applicationContext-spring-security-jdbc.xml");
-      "/opt/pentaho/biserver-ce/pentaho-solutions/system/applicationContext-spring-security-hibernate.properties":
-        content => template("pentaho/pentaho-solutions/system/applicationContext-spring-security-hibernate.properties");
-      "/opt/pentaho/biserver-ce/pentaho-solutions/system/publisher_config.xml":
-        content => template("pentaho/pentaho-solutions/system/publisher_config.xml");
-      "/opt/pentaho/biserver-ce/pentaho-solutions/system/hibernate/hibernate-settings.xml":
-        content => template("pentaho/pentaho-solutions/system/hibernate/hibernate-settings.xml");
-      "/opt/pentaho/biserver-ce/pentaho-solutions/system/hibernate/${hibernate_database_type}.hibernate.cfg.xml":
-        content => template("pentaho/pentaho-solutions/system/hibernate/${hibernate_database_type}.hibernate.cfg.xml");
-    }
-    $create_hibernate_sql = "/opt/pentaho/biserver-ce/data/puppet/create_hibernate_datasource_table.sql"
-    file { $create_hibernate_sql:
-      #ensure => present,
-      source => 'puppet:///modules/pentaho/create_hibernate_datasource_table.sql',
-    }
+}
 
-    $create_quartz_sql = "/opt/pentaho/biserver-ce/data/puppet/create_quartz_mysql.sql"
-    file { $create_quartz_sql:
-      #ensure => present,
-      source => 'puppet:///modules/pentaho/create_quartz_mysql.sql',
-    }
+class pentaho::biserver::config_files {
+  $tomcat_port = $pentaho::config::tomcat_port
+  $jdbc_driver = $pentaho::config::jdbc_driver
+  $hibernate_user = $pentaho::config::hibernate_user
+  $hibernate_password = $pentaho::config::hibernate_password
+  $quartz_user = $pentaho::config::quartz_user
+  $quartz_password = $pentaho::config::quartz_password
+  $base_url = $pentaho::config::base_url
+  $trusted_ip = $pentaho::config::trusted_ip
+  $hsql_dialect = $pentaho::config::hsql_dialect
+  $publish_password = $pentaho::config::publish_password
+  $hibernate_database_type = $pentaho::config::hibernate_database_type
 
-    Exec {
-      path => [ '/usr/local/bin', '/usr/bin', '/bin' ]
-    }
+  $hibernate_jdbc_url = "jdbc:${pentaho::config::hibernate_database_type}://${pentaho::config::database_host}:${pentaho::config::database_port}/${pentaho::config::hibernate_database}"
+  $quartz_jdbc_url = "jdbc:${pentaho::config::hibernate_database_type}://${pentaho::config::database_host}:${pentaho::config::database_port}/${pentaho::config::quartz_database}"
 
-    case $database_type {
-      'mysql':  {
-        $mysql_hibernate = "mysql -h${database_host} -u${hibernate_user} -p${hibernate_password} ${hibernate_database}"
-        $mysql_quartz = "mysql -h${database_host} -u${quartz_user} -p${quartz_password} ${quartz_database}"
-        exec {
-          "import hibernate":
-            command     => "${mysql_hibernate} < ${create_hibernate_sql}",
-            #unless      => "echo 'SHOW TABLES' | ${mysql_hibernate} | grep -q DATASOURCE",
-            #refreshonly => true,
-            require     => File[$create_hibernate_sql];
-          "import quartz":
-            command     => "${mysql_quartz} < ${create_quartz_sql}",
-            unless      => "echo 'SHOW TABLES' | ${mysql_quartz} | grep -q QRTZ_JOB_LISTENERS",
-            refreshonly => true,
-            require     => File[$create_hibernate_sql];
-        }
-      }
-    }
-  } else {
-    warning('not tagged pentaho::biserver')
+  file {
+    "/opt/pentaho/biserver-ce/tomcat/conf/server.xml":
+      content => template("pentaho/tomcat/conf/server.xml");
+    "/opt/pentaho/biserver-ce/tomcat/webapps/pentaho/META-INF/context.xml":
+      content => template("pentaho/tomcat/webapps/pentaho/META-INF/context.xml");
+    "/opt/pentaho/biserver-ce/tomcat/webapps/pentaho/WEB-INF/web.xml":
+      content => template("pentaho/tomcat/webapps/pentaho/WEB-INF/web.xml");
+    "/opt/pentaho/biserver-ce/pentaho-solutions/system/applicationContext-spring-security-jdbc.xml":
+      content => template("pentaho/pentaho-solutions/system/applicationContext-spring-security-jdbc.xml");
+    "/opt/pentaho/biserver-ce/pentaho-solutions/system/applicationContext-spring-security-hibernate.properties":
+      content => template("pentaho/pentaho-solutions/system/applicationContext-spring-security-hibernate.properties");
+    "/opt/pentaho/biserver-ce/pentaho-solutions/system/publisher_config.xml":
+      content => template("pentaho/pentaho-solutions/system/publisher_config.xml");
+    "/opt/pentaho/biserver-ce/pentaho-solutions/system/hibernate/hibernate-settings.xml":
+      content => template("pentaho/pentaho-solutions/system/hibernate/hibernate-settings.xml");
+    "/opt/pentaho/biserver-ce/pentaho-solutions/system/hibernate/${pentaho::config::hibernate_database_type}.hibernate.cfg.xml":
+      content => template("pentaho/pentaho-solutions/system/hibernate/${pentaho::config::hibernate_database_type}.hibernate.cfg.xml");
+  }
+  $create_hibernate_sql = "/opt/pentaho/biserver-ce/data/puppet/create_hibernate_datasource_table.sql"
+  file { $create_hibernate_sql:
+    #ensure => present,
+    source => 'puppet:///modules/pentaho/create_hibernate_datasource_table.sql',
   }
 
+  $create_quartz_sql = "/opt/pentaho/biserver-ce/data/puppet/create_quartz_mysql.sql"
+  file { $create_quartz_sql:
+    #ensure => present,
+    source => 'puppet:///modules/pentaho/create_quartz_mysql.sql',
+  }
+
+  Exec {
+    path => [ '/usr/local/bin', '/usr/bin', '/bin' ]
+  }
+
+  case $pentaho::config::database_type {
+    'mysql':  {
+      $mysql_hibernate = "mysql -h${pentaho::config::database_host} -u${pentaho::config::hibernate_user} -p${pentaho::config::hibernate_password} ${pentaho::config::hibernate_database}"
+      $mysql_quartz = "mysql -h${pentaho::config::database_host} -u${pentaho::config::quartz_user} -p${pentaho::config::quartz_password} ${pentaho::config::quartz_database}"
+      exec {
+        "import hibernate":
+          command     => "${mysql_hibernate} < ${create_hibernate_sql}",
+          unless      => "echo 'SHOW TABLES' | ${mysql_hibernate} | grep -q DATASOURCE",
+          #refreshonly => true,
+          require     => File[$create_hibernate_sql];
+        "import quartz":
+          command     => "${mysql_quartz} < ${create_quartz_sql}",
+          unless      => "echo 'SHOW TABLES' | ${mysql_quartz} | grep -q QRTZ_JOB_LISTENERS",
+          #refreshonly => true,
+          require     => File[$create_hibernate_sql];
+      }
+    }
+  }
 }
 
 class pentaho::mondrian {
@@ -196,24 +202,27 @@ define pentaho::datasource($type = 'mysql', $driver = 'com.mysql.jdbc.Driver', $
     path => [ '/usr/local/bin', '/usr/bin', '/bin' ]
   }
 
-  if tagged('pentaho::biserver') {
-    $url = "jdbc:${type}://${pentaho::config::database_host}:${pentaho::config::database_port}/${title}"
+  # FIXME: this should only depend on tags within the module
+  if tagged('biserver') {
     $schema_file = md5($table_schema)
     $schema_path = "/opt/pentaho/biserver-ce/data/puppet/${schema_file}"
-    file { "${schema_path}":
+    file { $schema_path:
       owner   => 'puppet',
       mode    => '600',
-      content => $schema
+      ensure  => file,
+      source  => $tables_schema
     }
     exec { "create $title schema":
       command => "mysql -h ${pentaho::config::database_host} -u${pentaho::config::hibernate_user} -p${pentaho::config::hibernate_password} ${pentaho::config::hibernate_database} < ${schema_path}",
       refreshonly => true,
-      require => File[$schema_path],
+      subscribe => File[$schema_path],
     }
     
+    $url = "jdbc:${type}://${pentaho::config::database_host}:${pentaho::config::database_port}/${title}"
     # creates a file containing sql to populate datasource record, then execs mysql client
-    $sql = "REPLACE INTO `DATASOURCE` (`NAME`, `DRIVERCLASS`, `USERNAME`, `PASSWORD`, `URL`)
-      VALUES ('${title}', '${driver}', '${username}', '${password}', '${url}')"
+    $sql_tmpl = "<% require 'base64' %>REPLACE INTO `DATASOURCE` (`NAME`, `DRIVERCLASS`, `USERNAME`, `PASSWORD`, `URL`)
+      VALUES ('${title}', '${driver}', '${username}', '<%= Base64.encode64(\"${password}\") -%>', '${url}');"
+    $sql = inline_template($sql_tmpl)
     $sql_file = md5($sql)
     $sql_path = "/opt/pentaho/biserver-ce/data/puppet/${sql_file}"
 
@@ -225,9 +234,9 @@ define pentaho::datasource($type = 'mysql', $driver = 'com.mysql.jdbc.Driver', $
     exec { "create datasource $title":
       command => "mysql -h ${pentaho::config::database_host} -u${pentaho::config::hibernate_user} -p${pentaho::config::hibernate_password} ${pentaho::config::hibernate_database} < ${sql_path}",
       refreshonly => true,
-      require => File[$sql_path]
+      subscribe => File[$sql_path]
     }
-  } elsif tagged('pentaho::database') {
+  } elsif tagged('mysqlserver') {
     mysql::db { $title:
       user     => $username,
       password => $password,
@@ -235,7 +244,6 @@ define pentaho::datasource($type = 'mysql', $driver = 'com.mysql.jdbc.Driver', $
       host     => '%',
       grant    => ['all'],
     }
-
   }
 }
 
