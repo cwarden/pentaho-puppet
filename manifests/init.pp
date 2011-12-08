@@ -3,10 +3,44 @@ Class['pentaho::biserver'] -> Class['pentaho::saiku']
 Class['pentaho::config'] -> Class['pentaho::database']
 Class['pentaho::config'] -> Class['pentaho::biserver::config_files']
 
-class pentaho::biserver($demos = true) {
+class pentaho::biserver::nodemos {
+  file { '/opt/pentaho/biserver-ce/tomcat/webapps/pentaho/WEB-INF/lib/pentaho-reporting-engine-classic-extensions-sampledata-3.8.3-GA.jar':
+    ensure => absent
+  }
+}
+
+class pentaho::demos::datasource {
+  pentaho::datasource { 'SampleData':
+    username => 'sampledata',
+    password => 'La4saiZi',
+    type     => 'mysql',
+    tables_schema => 'puppet:///modules/pentaho/sampledata.sql',
+  }
+}
+
+class pentaho::demos::solution {
+  pentaho::solution { 'steel-wheels':
+    name        => 'Steel Wheels',
+    description => 'Reporting, Analysis, and Dashboarding Samples for Steel Wheels, Inc.'
+  }
+}
+class pentaho::demos::catalogs {
+  pentaho::catalog {
+    'SteelWheels':
+      solution        => 'steel-wheels',
+      datasource      => 'SampleData',
+      mondrian_schema => 'puppet:///modules/pentaho/steelwheels.mondrian.xml';
+    'SampleData':
+      solution        => 'steel-wheels',
+      datasource      => 'SampleData',
+      mondrian_schema => 'puppet:///modules/pentaho/SampleData.mondrian.xml';
+  }
+}
+
+
+class pentaho::biserver {
   class { 'mysql': }
 
-# TODO: remove demo stuff if $demos is false
   file { "pentaho-bi-server_3.10.0_all.deb":
     path   => "/var/cache/apt/archives/pentaho-bi-server_3.10.0_all.deb",
     source => "puppet:///modules/pentaho/pentaho-bi-server_3.10.0_all.deb",
@@ -128,10 +162,10 @@ class pentaho::biserver::config_files {
     "/opt/pentaho/biserver-ce/pentaho-solutions/system/hibernate/${pentaho::config::hibernate_database_type}.hibernate.cfg.xml":
       content => template("pentaho/pentaho-solutions/system/hibernate/${pentaho::config::hibernate_database_type}.hibernate.cfg.xml");
   }
-  $create_hibernate_sql = "/opt/pentaho/biserver-ce/data/puppet/create_hibernate_datasource_table.sql"
+  $create_hibernate_sql = "/opt/pentaho/biserver-ce/data/puppet/create_hibernate_tables.sql"
   file { $create_hibernate_sql:
     #ensure => present,
-    source => 'puppet:///modules/pentaho/create_hibernate_datasource_table.sql',
+    source => 'puppet:///modules/pentaho/create_hibernate_tables.sql',
   }
 
   $create_quartz_sql = "/opt/pentaho/biserver-ce/data/puppet/create_quartz_mysql.sql"
