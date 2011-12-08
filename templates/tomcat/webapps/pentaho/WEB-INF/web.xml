@@ -472,11 +472,6 @@
 	</servlet>
 
 	<servlet>
-		<servlet-name>DialPct</servlet-name>
-		<jsp-file>/chart/DialPct.jsp</jsp-file>
-	</servlet>
-
-	<servlet>
 		<servlet-name>GetResource</servlet-name>
 		<servlet-class>org.pentaho.platform.web.servlet.GetResource</servlet-class>
 	</servlet>
@@ -499,6 +494,11 @@
   	<servlet>
 		<servlet-name>UploadService</servlet-name>
 		<servlet-class>org.pentaho.platform.web.servlet.UploadFileServlet</servlet-class>
+	</servlet>
+
+	<servlet>
+		<servlet-name>ThemeServlet</servlet-name>
+		<servlet-class>org.pentaho.platform.web.servlet.ThemeServlet</servlet-class>
 	</servlet>
 	
 	<!-- [BEGIN SAMPLE SERVLETS] -->
@@ -537,10 +537,7 @@
 		<jsp-file>/jsp/Map.jsp</jsp-file>
 	</servlet>	
 	
-	<servlet>
-		<servlet-name>SampleFlashDashboard</servlet-name>
-		<jsp-file>/jsp/SampleFlashDashboard.jsp</jsp-file>
-	</servlet>	
+
 	<!-- [END SAMPLE SERVLETS] -->
 
   <!-- insert additional servlets -->
@@ -764,11 +761,6 @@
 	</servlet-mapping>
 
 	<servlet-mapping>
-		<servlet-name>DialPct</servlet-name>
-		<url-pattern>/DialPct</url-pattern>
-	</servlet-mapping>
-
-	<servlet-mapping>
 		<servlet-name>SubscriptionAdmin</servlet-name>
 		<url-pattern>/SubscriptionAdmin</url-pattern>
 	</servlet-mapping>
@@ -818,6 +810,11 @@
 		<url-pattern>/SolutionRepositoryService</url-pattern>
 	</servlet-mapping>
 
+	<servlet-mapping>
+		<servlet-name>ThemeServlet</servlet-name>
+		<url-pattern>/js/themes.js</url-pattern>
+	</servlet-mapping>
+
     <!-- [BEGIN SAMPLE SERVLET MAPPINGS] -->
 	<servlet-mapping>
 		<servlet-name>UpdateSampleEmails</servlet-name>
@@ -854,16 +851,22 @@
 		<url-pattern>/Map</url-pattern>
 	</servlet-mapping>	
 
-	<servlet-mapping>
-		<servlet-name>SampleFlashDashboard</servlet-name>
-		<url-pattern>/SampleFlashDashboard</url-pattern>
-	</servlet-mapping>	
     <!-- [END SAMPLE SERVLET MAPPINGS] -->
 
 	<!-- insert additional servlet mappings -->
 	<session-config>
 		<session-timeout>30</session-timeout>
 	</session-config>
+
+	<mime-mapping>
+		<extension>properties</extension>
+		<mime-type>text/plain</mime-type>
+	</mime-mapping>
+
+	<mime-mapping>
+		<extension>js</extension>
+		<mime-type>text/javascript</mime-type>
+	</mime-mapping>
 
 	<welcome-file-list>
 		<welcome-file>index.jsp</welcome-file>
@@ -897,6 +900,10 @@
 
 	<!-- insert additional resource-refs -->
 
+	<security-role>
+		   <description>security role</description>
+			   <role-name>PENTAHO_ADMIN</role-name>
+			</security-role>
 	<security-constraint>
 		<display-name>Default JSP Security Constraints</display-name>
 		<web-resource-collection>

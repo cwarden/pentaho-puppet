@@ -2,6 +2,20 @@ Class['pentaho::biserver'] -> Class['pentaho::config']
 Class['pentaho::biserver'] -> Class['pentaho::saiku']
 Class['pentaho::config'] -> Class['pentaho::database']
 Class['pentaho::config'] -> Class['pentaho::biserver::config_files']
+Class['pentaho::biserver::config_files'] -> Class['pentaho::biserver::run']
+
+class pentaho::biserver::run {
+  service { 'start-bi-server':
+    start     => '/bin/su -s /bin/bash -c /opt/pentaho/biserver-ce/start-pentaho.sh pentaho &',
+    stop      => '/bin/su -s /bin/bash -c /opt/pentaho/biserver-ce/stop-pentaho.sh pentaho',
+    status    => '/bin/netstat -ltpn | awk \'{ print $4}\' |grep -q ":8080"',
+    ensure    => running,
+    #user     => 'pentaho',
+    #group    => 'pentaho',
+    require   => File['/opt/pentaho/biserver-ce/start-pentaho-debug.sh'],
+    subscribe => [Exec['import hibernate', 'import quartz'], File['/opt/pentaho/biserver-ce/tomcat/conf/Catalina/localhost/pentaho.xml']],
+  }
+}
 
 class pentaho::biserver::nodemos {
   file { '/opt/pentaho/biserver-ce/tomcat/webapps/pentaho/WEB-INF/lib/pentaho-reporting-engine-classic-extensions-sampledata-3.8.3-GA.jar':
@@ -39,6 +53,16 @@ class pentaho::demos::catalogs {
 
 
 class pentaho::biserver {
+  group { 'pentaho':
+    ensure => present,
+    system => true,
+  }
+  user { 'pentaho':
+    ensure => present,
+    gid    => 'pentaho',
+    home   => '/opt/pentaho',
+    system => true
+  }
   class { 'mysql': }
 
   file { "pentaho-bi-server_3.10.0_all.deb":
@@ -46,15 +70,18 @@ class pentaho::biserver {
     source => "puppet:///modules/pentaho/pentaho-bi-server_3.10.0_all.deb",
   }
 
-  package { "openjdk-6-jre":
-    ensure => latest,
+  Package { ensure => latest }
+  package {
+    'openjdk-6-jre':;
+    'libmysql-java':;
+    'libtcnative-1':;
   }
 
   package { "pentaho-bi-server":
     ensure  => "present",
     provider => "dpkg",
-    source  => "/var/cache/apt/archives/pentaho-bi-server_3.10.0_all.deb",
-    require => [File["pentaho-bi-server_3.10.0_all.deb"], Package["openjdk-6-jre"]],
+    source  => '/var/cache/apt/archives/pentaho-bi-server_3.10.0_all.deb',
+    require => [File['pentaho-bi-server_3.10.0_all.deb'], Package['openjdk-6-jre', 'libmysql-java']],
   }
 
   file { "/opt/pentaho/biserver-ce/data/puppet":
@@ -63,6 +90,62 @@ class pentaho::biserver {
     group  => 'puppet',
     mode   => '700',
   }
+
+  class files {
+    File {
+      require => [ Group['pentaho'], Package['pentaho-bi-server']],
+    }
+    file {
+      '/opt/pentaho/biserver-ce/tomcat/webapps/pentaho/WEB-INF/classes/log4j.xml':
+        source => 'puppet:///modules/pentaho/log4j.xml',
+        owner => 'root',
+        group => 'root',
+        ensure => present;
+      '/opt/pentaho/biserver-ce/promptuser.sh':
+        ensure => absent;
+      '/opt/pentaho/biserver-ce/start-pentaho.sh':
+        source => 'puppet:///modules/pentaho/start-pentaho.sh',
+        mode => '755',
+        owner => 'root',
+        group => 'root';
+      '/opt/pentaho/biserver-ce/start-pentaho-debug.sh':
+        source => 'puppet:///modules/pentaho/start-pentaho-debug.sh',
+        mode => '755',
+        owner => 'root',
+        group => 'root';
+    }
+  }
+
+  include files
+
+  class tomcat-writable {
+    File {
+      group => 'pentaho',
+      mode  => '770',
+      require => [ Group['pentaho'], Package['pentaho-bi-server']],
+    }
+    file {
+      '/opt/pentaho/biserver-ce/tomcat/logs': ensure => directory;
+      '/opt/pentaho/biserver-ce/tomcat/work': ensure => directory;
+      '/opt/pentaho/biserver-ce/tomcat/temp': ensure => directory;
+      '/opt/pentaho/biserver-ce/pentaho-solutions/system/tmp': ensure => directory;
+      '/opt/pentaho/biserver-ce/pentaho-solutions/system/logs': ensure => directory, recurse => true;
+      '/opt/pentaho/biserver-ce/tomcat/conf/Catalina': ensure => directory;
+      '/opt/pentaho/biserver-ce/tomcat/conf/Catalina/localhost': ensure => directory;
+      '/opt/pentaho/biserver-ce/pentaho-solutions': ensure => directory, recurse => false;
+      '/opt/pentaho/biserver-ce/pentaho-solutions/system/pentaho-cdf/tmp': ensure => directory;
+      '/opt/pentaho/biserver-ce/pentaho-solutions/system/pentaho-cdf-dd': ensure => directory, recurse => false;
+      '/opt/pentaho/biserver-ce/pentaho-solutions/system/pentaho-cdf-dd/js': ensure => directory, recurse => true;
+      '/opt/pentaho/biserver-ce/pentaho-solutions/system/pentaho-cdf-dd/css': ensure => directory, recurse => true;
+      '/opt/pentaho/.kettle': ensure => directory;
+      '/opt/pentaho/.tonbeller': ensure => directory;
+      '/opt/pentaho/.pentaho': ensure => directory;
+      '/opt/pentaho/.kettle/kettle.properties': ensure => file;
+    }
+  }
+
+  include tomcat-writable
+
 }
 
 # installs the database server and creates the hibernate and quartz databases
@@ -141,14 +224,16 @@ class pentaho::biserver::config_files {
   $publish_password = $pentaho::config::publish_password
   $hibernate_database_type = $pentaho::config::hibernate_database_type
 
-  $hibernate_jdbc_url = "jdbc:${pentaho::config::hibernate_database_type}://${pentaho::config::database_host}:${pentaho::config::database_port}/${pentaho::config::hibernate_database}"
-  $quartz_jdbc_url = "jdbc:${pentaho::config::hibernate_database_type}://${pentaho::config::database_host}:${pentaho::config::database_port}/${pentaho::config::quartz_database}"
+  $hibernate_jdbc_url = "jdbc:${pentaho::config::database_type}://${pentaho::config::database_host}:${pentaho::config::database_port}/${pentaho::config::hibernate_database}"
+  $quartz_jdbc_url = "jdbc:${pentaho::config::database_type}://${pentaho::config::database_host}:${pentaho::config::database_port}/${pentaho::config::quartz_database}"
 
   file {
     "/opt/pentaho/biserver-ce/tomcat/conf/server.xml":
       content => template("pentaho/tomcat/conf/server.xml");
     "/opt/pentaho/biserver-ce/tomcat/webapps/pentaho/META-INF/context.xml":
       content => template("pentaho/tomcat/webapps/pentaho/META-INF/context.xml");
+    "/opt/pentaho/biserver-ce/tomcat/conf/Catalina/localhost/pentaho.xml":
+      source => "/opt/pentaho/biserver-ce/tomcat/webapps/pentaho/META-INF/context.xml";
     "/opt/pentaho/biserver-ce/tomcat/webapps/pentaho/WEB-INF/web.xml":
       content => template("pentaho/tomcat/webapps/pentaho/WEB-INF/web.xml");
     "/opt/pentaho/biserver-ce/pentaho-solutions/system/applicationContext-spring-security-jdbc.xml":
@@ -236,9 +321,17 @@ define pentaho::datasource($type = 'mysql', $driver = 'com.mysql.jdbc.Driver', $
     path => [ '/usr/local/bin', '/usr/bin', '/bin' ]
   }
 
+  notify { "tags: ${title}":
+    message => inline_template('
+<% tags.each do |tag| -%>
+The tag <%= tag %> is part of the current scope
+<% end -%>')
+  }
+
   # FIXME: this should only depend on tags within the module
   if tagged('biserver') {
-    $schema_file = md5($table_schema)
+    notify { "building datasource ${title}": }
+    $schema_file = md5($tables_schema)
     $schema_path = "/opt/pentaho/biserver-ce/data/puppet/${schema_file}"
     file { $schema_path:
       owner   => 'puppet',
@@ -247,11 +340,11 @@ define pentaho::datasource($type = 'mysql', $driver = 'com.mysql.jdbc.Driver', $
       source  => $tables_schema
     }
     exec { "create $title schema":
-      command => "mysql -h ${pentaho::config::database_host} -u${pentaho::config::hibernate_user} -p${pentaho::config::hibernate_password} ${pentaho::config::hibernate_database} < ${schema_path}",
+      command => "mysql -h ${pentaho::config::database_host} -u${username} -p${password} ${title} < ${schema_path}",
       refreshonly => true,
-      subscribe => File[$schema_path],
+      subscribe => [File[$schema_path], Exec['import hibernate']],
     }
-    
+
     $url = "jdbc:${type}://${pentaho::config::database_host}:${pentaho::config::database_port}/${title}"
     # creates a file containing sql to populate datasource record, then execs mysql client
     $sql_tmpl = "<% require 'base64' %>REPLACE INTO `DATASOURCE` (`NAME`, `DRIVERCLASS`, `USERNAME`, `PASSWORD`, `URL`)
@@ -291,7 +384,7 @@ define pentaho::catalog($datasource, $mondrian_schema, $solution) {
 
   file {
     "/opt/pentaho/biserver-ce/pentaho-solutions/${solution}/mondrian/${basename}":
-      source => $schema
+      source => $mondrian_schema
   }
 
   include pentaho::mondrian
