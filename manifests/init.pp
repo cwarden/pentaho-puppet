@@ -13,7 +13,7 @@ class pentaho::biserver::run {
     #user     => 'pentaho',
     #group    => 'pentaho',
     require   => File['/opt/pentaho/biserver-ce/start-pentaho-debug.sh'],
-    subscribe => [Exec['import hibernate', 'import quartz'], File['/opt/pentaho/biserver-ce/tomcat/conf/Catalina/localhost/pentaho.xml']],
+    subscribe => [Exec['import hibernate', 'import quartz'], File['/opt/pentaho/biserver-ce/tomcat/conf/Catalina/localhost/pentaho.xml', '/opt/pentaho/biserver-ce/tomcat/webapps/pentaho/WEB-INF/web.xml']],
   }
 }
 
@@ -236,10 +236,14 @@ class pentaho::biserver::config_files {
       source => "/opt/pentaho/biserver-ce/tomcat/webapps/pentaho/META-INF/context.xml";
     "/opt/pentaho/biserver-ce/tomcat/webapps/pentaho/WEB-INF/web.xml":
       content => template("pentaho/tomcat/webapps/pentaho/WEB-INF/web.xml");
+    "/opt/pentaho/biserver-ce/tomcat/webapps/pentaho/mantle/loginsettings.properties":
+      content => template("pentaho/tomcat/webapps/pentaho/mantle/loginsettings.properties");
     "/opt/pentaho/biserver-ce/pentaho-solutions/system/applicationContext-spring-security-jdbc.xml":
       content => template("pentaho/pentaho-solutions/system/applicationContext-spring-security-jdbc.xml");
     "/opt/pentaho/biserver-ce/pentaho-solutions/system/applicationContext-spring-security-hibernate.properties":
       content => template("pentaho/pentaho-solutions/system/applicationContext-spring-security-hibernate.properties");
+    "/opt/pentaho/biserver-ce/pentaho-solutions/system/pentaho.xml":
+      content => template("pentaho/pentaho-solutions/system/pentaho.xml");
     "/opt/pentaho/biserver-ce/pentaho-solutions/system/publisher_config.xml":
       content => template("pentaho/pentaho-solutions/system/publisher_config.xml");
     "/opt/pentaho/biserver-ce/pentaho-solutions/system/hibernate/hibernate-settings.xml":
@@ -319,13 +323,6 @@ define pentaho::datasource($type = 'mysql', $driver = 'com.mysql.jdbc.Driver', $
 
   Exec {
     path => [ '/usr/local/bin', '/usr/bin', '/bin' ]
-  }
-
-  notify { "tags: ${title}":
-    message => inline_template('
-<% tags.each do |tag| -%>
-The tag <%= tag %> is part of the current scope
-<% end -%>')
   }
 
   # FIXME: this should only depend on tags within the module
