@@ -89,6 +89,7 @@ class pentaho::biserver {
     owner  => 'puppet',
     group  => 'puppet',
     mode   => '700',
+    require => Package['pentaho-bi-server']
   }
 
   class files {
@@ -274,14 +275,14 @@ class pentaho::biserver::config_files {
       exec {
         "import hibernate":
           command     => "${mysql_hibernate} < ${create_hibernate_sql}",
-          unless      => "echo 'SHOW TABLES' | ${mysql_hibernate} | grep -q DATASOURCE",
-          #refreshonly => true,
-          require     => File[$create_hibernate_sql];
+          #unless      => "echo 'SHOW TABLES' | ${mysql_hibernate} | grep -q DATASOURCE",
+          refreshonly => true,
+          subscribe     => File[$create_hibernate_sql];
         "import quartz":
           command     => "${mysql_quartz} < ${create_quartz_sql}",
           unless      => "echo 'SHOW TABLES' | ${mysql_quartz} | grep -q QRTZ_JOB_LISTENERS",
-          #refreshonly => true,
-          require     => File[$create_hibernate_sql];
+          refreshonly => true,
+          subscribe   => File[$create_quartz_sql];
       }
     }
   }
