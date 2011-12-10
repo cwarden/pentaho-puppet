@@ -1,5 +1,7 @@
 Class['pentaho::biserver'] -> Class['pentaho::config']
 Class['pentaho::biserver'] -> Class['pentaho::saiku']
+Class['pentaho::biserver'] -> Class['pentaho::biserver::system_databases']
+Class['pentaho::config'] -> Class['pentaho::biserver::system_databases']
 Class['pentaho::config'] -> Class['pentaho::database']
 Class['pentaho::config'] -> Class['pentaho::biserver::config_files']
 Class['pentaho::biserver::config_files'] -> Class['pentaho::biserver::run']
@@ -228,6 +230,7 @@ class pentaho::biserver::config_files {
   $hibernate_jdbc_url = "jdbc:${pentaho::config::database_type}://${pentaho::config::database_host}:${pentaho::config::database_port}/${pentaho::config::hibernate_database}"
   $quartz_jdbc_url = "jdbc:${pentaho::config::database_type}://${pentaho::config::database_host}:${pentaho::config::database_port}/${pentaho::config::quartz_database}"
 
+  File { require => Package['pentaho-bi-server'] }
   file {
     "/opt/pentaho/biserver-ce/tomcat/conf/server.xml":
       content => template("pentaho/tomcat/conf/server.xml");
@@ -252,6 +255,9 @@ class pentaho::biserver::config_files {
     "/opt/pentaho/biserver-ce/pentaho-solutions/system/hibernate/${pentaho::config::hibernate_database_type}.hibernate.cfg.xml":
       content => template("pentaho/pentaho-solutions/system/hibernate/${pentaho::config::hibernate_database_type}.hibernate.cfg.xml");
   }
+}
+
+class pentaho::biserver::system_databases {
   $create_hibernate_sql = "/opt/pentaho/biserver-ce/data/puppet/create_hibernate_tables.sql"
   file { $create_hibernate_sql:
     #ensure => present,
@@ -265,7 +271,8 @@ class pentaho::biserver::config_files {
   }
 
   Exec {
-    path => [ '/usr/local/bin', '/usr/bin', '/bin' ]
+    path    => [ '/usr/local/bin', '/usr/bin', '/bin' ],
+    require => tagged('mysqlserver') ? { true => Class['pentaho::database'], default => undef }
   }
 
   case $pentaho::config::database_type {
@@ -275,9 +282,9 @@ class pentaho::biserver::config_files {
       exec {
         "import hibernate":
           command     => "${mysql_hibernate} < ${create_hibernate_sql}",
-          #unless      => "echo 'SHOW TABLES' | ${mysql_hibernate} | grep -q DATASOURCE",
+          #unless     => "echo 'SHOW TABLES' | ${mysql_hibernate} | grep -q DATASOURCE",
           refreshonly => true,
-          subscribe     => File[$create_hibernate_sql];
+          subscribe   => File[$create_hibernate_sql];
         "import quartz":
           command     => "${mysql_quartz} < ${create_quartz_sql}",
           unless      => "echo 'SHOW TABLES' | ${mysql_quartz} | grep -q QRTZ_JOB_LISTENERS",
@@ -361,13 +368,16 @@ define pentaho::datasource($type = 'mysql', $driver = 'com.mysql.jdbc.Driver', $
       refreshonly => true,
       subscribe => File[$sql_path]
     }
-  } elsif tagged('mysqlserver') {
+  } 
+  if tagged('mysqlserver') {
+    Class['pentaho::database'] -> Pentaho::Datasource[$title]
     mysql::db { $title:
       user     => $username,
       password => $password,
       # TODO: restrict hosts
       host     => '%',
       grant    => ['all'],
+      before   => tagged('biserver') ? { true => Exec["create $title schema"], default => undef }
     }
   }
 }
