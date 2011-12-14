@@ -6,6 +6,20 @@ Class['pentaho::config'] -> Class['pentaho::database']
 Class['pentaho::config'] -> Class['pentaho::biserver::config_files']
 Class['pentaho::biserver::config_files'] -> Class['pentaho::biserver::run']
 
+class pentaho::biserver::proxy {
+  class { 'nginx': }
+  nginx::resource::upstream { 'bi-server':
+    ensure  => present,
+    members => [
+      'localhost:8080',
+    ],
+  }
+  nginx::resource::vhost { 'reporting.swellpath.com':
+    ensure   => present,
+    proxy  => 'http://bi-server',
+  }
+}
+
 class pentaho::biserver::run {
   service { 'start-bi-server':
     start     => '/bin/su -s /bin/bash -c /opt/pentaho/biserver-ce/start-pentaho.sh pentaho &',
@@ -335,7 +349,6 @@ define pentaho::datasource($type = 'mysql', $driver = 'com.mysql.jdbc.Driver', $
 
   # FIXME: this should only depend on tags within the module
   if tagged('biserver') {
-    notify { "building datasource ${title}": }
     $schema_file = md5($tables_schema)
     $schema_path = "/opt/pentaho/biserver-ce/data/puppet/${schema_file}"
     file { $schema_path:
