@@ -169,12 +169,14 @@ class pentaho::biserver {
 class pentaho::database($type = 'mysql', $admin_password) {
   case $type {
     'mysql': {
-      class { 'mysql::server':
-        config_hash => {
-          'root_password' => $admin_password,
-          'bind_address'  => tagged('pentaho::biserver') ?  {
-            true  => '127.0.0.1',
-            false => '0.0.0.0'
+      if !defined(Class['mysql::server']) {
+        class { 'mysql::server':
+          config_hash => {
+            'root_password' => $admin_password,
+            'bind_address'  => tagged('pentaho::biserver') ?  {
+              true  => '127.0.0.1',
+              false => '0.0.0.0'
+            }
           }
         }
       }
