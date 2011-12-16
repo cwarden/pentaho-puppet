@@ -1,7 +1,9 @@
 Class['pentaho::biserver'] -> Class['pentaho::config']
 Class['pentaho::biserver'] -> Class['pentaho::saiku']
+Class['pentaho::biserver'] -> Class['pentaho::ctools']
 Class['pentaho::biserver'] -> Class['pentaho::biserver::system_databases']
 Class['pentaho::config'] -> Class['pentaho::biserver::system_databases']
+Class['pentaho::biserver::system_databases'] -> Class['pentaho::biserver::default_authorities']
 Class['pentaho::config'] -> Class['pentaho::database']
 Class['pentaho::config'] -> Class['pentaho::biserver::config_files']
 Class['pentaho::biserver::config_files'] -> Class['pentaho::biserver::run']
@@ -21,7 +23,7 @@ class pentaho::biserver::proxy {
 }
 
 class pentaho::biserver::run {
-  service { 'start-bi-server':
+  service { 'bi-server':
     start     => '/bin/su -s /bin/bash -c /opt/pentaho/biserver-ce/start-pentaho.sh pentaho &',
     stop      => '/bin/su -s /bin/bash -c /opt/pentaho/biserver-ce/stop-pentaho.sh pentaho',
     status    => '/bin/netstat -ltpn | awk \'{ print $4}\' |grep -q ":8080"',
@@ -311,6 +313,31 @@ class pentaho::biserver::system_databases {
   }
 }
 
+class pentaho::biserver::default_authorities {
+  $create_default_authorities_sql = "/opt/pentaho/biserver-ce/data/puppet/default_authorities.sql"
+  file { $create_default_authorities_sql:
+    #ensure => present,
+    source => 'puppet:///modules/pentaho/default_authorities.sql',
+  }
+
+  Exec {
+    path    => [ '/usr/local/bin', '/usr/bin', '/bin' ],
+    require => tagged('mysqlserver') ? { true => Class['pentaho::database'], default => undef }
+  }
+
+  case $pentaho::config::database_type {
+    'mysql':  {
+      $mysql = "mysql -h${pentaho::config::database_host} -u${pentaho::config::hibernate_user} -p${pentaho::config::hibernate_password} ${pentaho::config::hibernate_database}"
+      exec {
+        "import default authorities":
+          command     => "${mysql} < ${create_default_authorities_sql}",
+          refreshonly => true,
+          subscribe   => File[$create_default_authorities_sql];
+      }
+    }
+  }
+}
+
 class pentaho::mondrian {
   include concat::setup
   $datasources = '/opt/pentaho/biserver-ce/pentaho-solutions/system/olap/datasources.xml'
@@ -327,6 +354,21 @@ class pentaho::mondrian {
   }
 }
 
+class pentaho::ctools {
+  file { "ctools_20111214_all.deb":
+   path   => "/var/cache/apt/archives/ctools_20111214_all.deb",
+   source => "puppet:///modules/pentaho/ctools_20111214_all.deb",
+  }
+
+  package { "ctools":
+    ensure   => "present",
+    provider => "dpkg",
+    source   => "/var/cache/apt/archives/ctools_20111214_all.deb",
+    require  => [File["ctools_20111214_all.deb"], Class["pentaho::biserver"]],
+    notify   => Service['bi-server'],
+  }
+}
+
 class pentaho::saiku {
   file { "saiku-plugin_2.2-SNAPSHOT-20111201_all.deb":
    path   => "/var/cache/apt/archives/saiku-plugin_2.2-SNAPSHOT-20111201_all.deb",
@@ -335,9 +377,9 @@ class pentaho::saiku {
 
   package { "saiku-plugin":
     ensure  => "present",
-   provider => "dpkg",
+    provider => "dpkg",
     source  => "/var/cache/apt/archives/saiku-plugin_2.2-SNAPSHOT-20111201_all.deb",
-   require  => [File["saiku-plugin_2.2-SNAPSHOT-20111201_all.deb"], Class["pentaho::biserver"]],
+    require  => [File["saiku-plugin_2.2-SNAPSHOT-20111201_all.deb"], Class["pentaho::biserver"]],
   }
 }
 
@@ -368,7 +410,7 @@ define pentaho::datasource($type = 'mysql', $driver = 'com.mysql.jdbc.Driver', $
     $url = "jdbc:${type}://${pentaho::config::database_host}:${pentaho::config::database_port}/${title}"
     # creates a file containing sql to populate datasource record, then execs mysql client
     $sql_tmpl = "<% require 'base64' %>REPLACE INTO `DATASOURCE` (`NAME`, `DRIVERCLASS`, `USERNAME`, `PASSWORD`, `URL`)
-      VALUES ('${title}', '${driver}', '${username}', '<%= Base64.encode64(\"${password}\") -%>', '${url}');"
+      VALUES ('${title}', '${driver}', '${username}', '<%= Base64.encode64(\"${password}\").strip -%>', '${url}');"
     $sql = inline_template($sql_tmpl)
     $sql_file = md5($sql)
     $sql_path = "/opt/pentaho/biserver-ce/data/puppet/${sql_file}"
@@ -431,4 +473,36 @@ define pentaho::solution($description) {
       ensure => 'file',
       content => template('pentaho/pentaho-solutions/solution-template/index.xml');
   }
+}
+
+define pentaho::server::user($username = $title, $password, $authorities = ['Authenticated'], $description = '') {
+  Class['pentaho::biserver::system_databases'] -> Pentaho::Server::User[$title]
+
+  Exec {
+    path => [ '/usr/local/bin', '/usr/bin', '/bin' ]
+  }
+
+  $sql_tmpl = "<% require 'base64'; pass = Base64.encode64(\"${password}\").strip %>
+    BEGIN;
+    DELETE FROM GRANTED_AUTHORITIES WHERE USERNAME = '${username}';
+    INSERT INTO USERS (USERNAME, PASSWORD, ENABLED, DESCRIPTION) VALUES ('${username}', '<%= pass -%>', 1, '${description}')
+      ON DUPLICATE KEY UPDATE PASSWORD = '<%= pass %>', ENABLED = 1, DESCRIPTION = '${description}';
+    <% authorities.each do |val| -%>
+    INSERT INTO GRANTED_AUTHORITIES (USERNAME, AUTHORITY) VALUES ('${username}', '<%= val -%>');
+    <% end %>
+    COMMIT;"
+    $sql = inline_template($sql_tmpl)
+    $sql_file = md5($sql)
+    $sql_path = "/opt/pentaho/biserver-ce/data/puppet/${sql_file}"
+
+    file { "${sql_path}":
+      owner   => 'puppet',
+      mode    => '600',
+      content => $sql,
+    }
+    exec { "create biserver user $title":
+      command => "mysql -h ${pentaho::config::database_host} -u${pentaho::config::hibernate_user} -p${pentaho::config::hibernate_password} ${pentaho::config::hibernate_database} < ${sql_path}",
+      refreshonly => true,
+      subscribe => File[$sql_path]
+    }
 }
