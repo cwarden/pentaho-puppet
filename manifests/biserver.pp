@@ -78,6 +78,7 @@ class pentaho::biserver {
       '/opt/pentaho/biserver-ce/pentaho-solutions/system/pentaho-cdf-dd': ensure => directory, recurse => false;
       '/opt/pentaho/biserver-ce/pentaho-solutions/system/pentaho-cdf-dd/js': ensure => directory, recurse => true;
       '/opt/pentaho/biserver-ce/pentaho-solutions/system/pentaho-cdf-dd/css': ensure => directory, recurse => true;
+      '/opt/pentaho/biserver-ce/pentaho-solutions/system/pentaho-cdf/js': ensure => directory, recurse => true;
       '/opt/pentaho/.kettle': ensure => directory;
       '/opt/pentaho/.tonbeller': ensure => directory;
       '/opt/pentaho/.pentaho': ensure => directory;
