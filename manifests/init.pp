@@ -11,7 +11,8 @@ Class['pentaho::java'] -> Class['pentaho::biserver']
 class pentaho::java {
   Package { ensure => latest }
   package {
-    'openjdk-6-jre':;
+    'openjdk-6-jdk':;
+    'default-jdk':;
     'libmysql-java':;
     'libtcnative-1':;
     # pin at 0.9.1.2-5 until #10315 is fixed, see biserver.pp
