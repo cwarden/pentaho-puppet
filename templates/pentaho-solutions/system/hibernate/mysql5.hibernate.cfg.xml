@@ -4,12 +4,24 @@
   "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
 <hibernate-configuration>
   <session-factory>
-  
-  	<property name="cache.provider_class">org.hibernate.cache.EhCacheProvider</property>
+
+	<!-- hibernate c3p0 settings -->
+
+	<property name="connection.provider_class">org.hibernate.connection.C3P0ConnectionProvider</property>
+	<property name="hibernate.c3p0.acquire_increment">3</property>
+	<property name="hibernate.c3p0.idle_test_period">10</property>
+	<property name="hibernate.c3p0.min_size">5</property>
+	<property name="hibernate.c3p0.max_size">75</property>
+	<property name="hibernate.c3p0.max_statements">0</property>
+	<property name="hibernate.c3p0.timeout">25200</property>
+	<property name="hibernate.c3p0.preferredTestQuery">select 1</property>
+	<property name="hibernate.c3p0.testConnectionOnCheckout">true</property>
+
+	<property name="cache.provider_class">org.hibernate.cache.EhCacheProvider</property>
 
     <property name="hibernate.generate_statistics">true</property>
     <property name="hibernate.cache.use_query_cache">true</property>
-  
+
     <!--  MySQL Configuration -->
     <property name="connection.driver_class">com.mysql.jdbc.Driver</property>
 	 <property name="connection.url"><%= hibernate_jdbc_url %></property>
@@ -23,9 +35,9 @@
     <property name="hibernate.hbm2ddl.auto">update</property>
     <!-- load resource from classpath -->
     <mapping resource="hibernate/mysql5innodb.hbm.xml" />
-    <!--  This is only used by Pentaho Administration Console. Spring Security will not use these mapping files -->	
+    <!--  This is only used by Pentaho Administration Console. Spring Security will not use these mapping files -->
     <mapping resource="PentahoUser.hbm.xml" />
     <mapping resource="PentahoRole.hbm.xml" />
-    
+
   </session-factory>
 </hibernate-configuration>

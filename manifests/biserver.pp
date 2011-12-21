@@ -47,6 +47,14 @@ class pentaho::biserver {
         mode => '755',
         owner => 'root',
         group => 'root';
+      '/opt/pentaho/biserver-ce/tomcat/webapps/pentaho/WEB-INF/lib/c3p0.jar':
+        ensure => 'file',
+        links  => 'follow',
+        mode   => '644',
+        notify => Service['bi-server'],
+        # following symlinks broken so we can't copy the target of a symlink: http://projects.puppetlabs.com/issues/10315
+        # source => '/usr/share/java/c3p0.jar';
+        source => '/usr/share/java/c3p0-0.9.1.2.jar';
     }
   }
 

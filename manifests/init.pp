@@ -14,6 +14,8 @@ class pentaho::java {
     'openjdk-6-jre':;
     'libmysql-java':;
     'libtcnative-1':;
+    # pin at 0.9.1.2-5 until #10315 is fixed, see biserver.pp
+    'libc3p0-java': ensure => '0.9.1.2-5';
   }
 }
 
