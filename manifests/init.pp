@@ -16,3 +16,16 @@ class pentaho::java {
     'libtcnative-1':;
   }
 }
+
+class pentaho::apt_source {
+  if !defined(Apt::Source['swellpath']) {
+    apt::source { "swellpath":
+      location    => "http://swdeb.s3.amazonaws.com",
+      release     => "swellpath",
+      repos       => "main",
+      key         => "4EF797A0",
+      key_server  => "subkeys.pgp.net",
+      include_src => false,
+    }
+  }
+}

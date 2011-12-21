@@ -1,5 +1,6 @@
 class pentaho::biserver {
   include pentaho::java
+  include pentaho::apt_source
   include mysql
   group { 'pentaho':
     ensure => present,
@@ -12,16 +13,8 @@ class pentaho::biserver {
     system => true
   }
 
-  file { "pentaho-bi-server_3.10.0_all.deb":
-    path   => "/var/cache/apt/archives/pentaho-bi-server_3.10.0_all.deb",
-    source => "puppet:///modules/pentaho/pentaho-bi-server_3.10.0_all.deb",
-  }
-
   package { "pentaho-bi-server":
-    ensure  => "present",
-    provider => "dpkg",
-    source  => '/var/cache/apt/archives/pentaho-bi-server_3.10.0_all.deb',
-    require => [File['pentaho-bi-server_3.10.0_all.deb'], Package['openjdk-6-jre']]
+    ensure  => "latest",
   }
 
   file { "/opt/pentaho/biserver-ce/data/puppet":
