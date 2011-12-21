@@ -1,0 +1,32 @@
+#!/bin/sh -e
+### BEGIN INIT INFO
+# Provides: bi-server
+# Required-Start: $network $remote_fs
+# Required-Stop: $network $remote_fs
+# Should-Start: mysql
+# Should-Stop: mysql
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Description: Pentaho BI Platform
+### END INIT INFO
+
+export BISERVER_HOME=/opt/pentaho/biserver-ce
+
+case "$1" in
+'start')
+  cd $BISERVER_HOME
+  /bin/su -s /bin/bash -c ./start-pentaho.sh pentaho
+#  cd $BISERVER_HOME/../administration-console
+#  ./start.sh
+;;
+'stop')
+  cd $BISERVER_HOME
+  /bin/su -s /bin/bash -c ./stop-pentaho.sh pentaho
+#  cd $BISERVER_HOME/../administration-console
+#  ./stop.sh
+;;
+*)
+echo "Usage: $0 { start | stop }"
+;;
+esac
+exit 0
