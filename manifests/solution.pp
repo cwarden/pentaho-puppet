@@ -1,8 +1,11 @@
 # creates a new solution in the pentaho-solutions directory
-define pentaho::solution($description) {
+define pentaho::solution($description, $source = "puppet:///modules/pentaho/solution-template") {
   Class['pentaho::biserver'] -> Pentaho::Solution[$title]
   file {
     "/opt/pentaho/biserver-ce/pentaho-solutions/${title}":
+      source => $source,
+      recurse => true,
+      owner => 'pentaho',
       ensure => 'directory';
     "/opt/pentaho/biserver-ce/pentaho-solutions/${title}/mondrian":
       ensure => 'directory';
