@@ -24,7 +24,7 @@
    <appender name="PENTAHOFILE" class="org.apache.log4j.DailyRollingFileAppender">
 
 		<param name="File" value="/opt/pentaho/biserver-ce/tomcat/logs/pentaho.log"/>
-      <param name="Append" value="false"/>
+      <param name="Append" value="true"/>
 
       <!-- Rollover at midnight each day -->
       <param name="DatePattern" value="'.'yyyy-MM-dd"/>
