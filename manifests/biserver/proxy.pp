@@ -1,4 +1,4 @@
-class pentaho::biserver::proxy {
+class pentaho::biserver::proxy($vhost_name = 'pentaho', $vhost_port = 80) {
   include nginx
   nginx::resource::upstream { 'bi-server':
     ensure  => present,
@@ -6,7 +6,8 @@ class pentaho::biserver::proxy {
       'localhost:8080',
     ],
   }
-  nginx::resource::vhost { 'reporting.swellpath.com':
+  nginx::resource::vhost { "${vhost_name}":
+    listen_port => $vhost_port,
     ensure   => present,
     proxy  => 'http://bi-server',
   }
