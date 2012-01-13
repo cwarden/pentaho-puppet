@@ -5,6 +5,11 @@ class pentaho::biserver::run {
       owner  => root,
       group  => root,
       mode   => 755;
+    '/etc/default/bi-server':
+      source => 'puppet:///modules/pentaho/bi-server.default',
+      owner  => root,
+      group  => root,
+      mode   => 755;
     '/opt/pentaho/biserver-ce/tomcat/bin/catalina.sh':
       source => 'puppet:///modules/pentaho/catalina.sh',
       owner  => root,
@@ -16,7 +21,18 @@ class pentaho::biserver::run {
     ensure    => running,
     enable    => true,
     require   => File['/opt/pentaho/biserver-ce/tomcat/bin/catalina.sh', '/etc/init.d/bi-server'],
-    subscribe => [Exec['import hibernate', 'import quartz'], File['/opt/pentaho/biserver-ce/tomcat/conf/Catalina/localhost/pentaho.xml', '/opt/pentaho/biserver-ce/tomcat/webapps/pentaho/WEB-INF/web.xml']],
+    subscribe => [
+      Exec[
+        'import hibernate',
+        'import quartz'
+      ],
+      File[
+        '/etc/init.d/bi-server',
+        '/etc/default/bi-server',
+        '/opt/pentaho/biserver-ce/tomcat/conf/Catalina/localhost/pentaho.xml',
+        '/opt/pentaho/biserver-ce/tomcat/webapps/pentaho/WEB-INF/web.xml'
+      ]
+    ],
   }
 }
 
