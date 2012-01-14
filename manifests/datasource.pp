@@ -16,6 +16,7 @@ define pentaho::datasource(
   }
 
   # FIXME: this should only depend on tags within the module
+  $url = "jdbc:${type}://${host}:${port}/${title}"
   if tagged('biserver') {
     if $tables_schema {
       $schema_file = md5($tables_schema)
@@ -33,7 +34,6 @@ define pentaho::datasource(
       }
     }
 
-    $url = "jdbc:${type}://${host}:${port}/${title}"
     # creates a file containing sql to populate datasource record, then execs mysql client
     $sql_tmpl = "<% require 'base64' %>REPLACE INTO `DATASOURCE` (`NAME`, `DRIVERCLASS`, `USERNAME`, `PASSWORD`, `URL`)
       VALUES ('${title}', '${driver}', '${username}', '<%= Base64.encode64(\"${password}\").strip -%>', '${url}');"
@@ -52,6 +52,13 @@ define pentaho::datasource(
       subscribe => File[$sql_path]
     }
   } 
+  if tagged('kettle') {
+    concat::fragment { "pentaho-kettle-jndi_datasource-${title}":
+      target  => $pentaho::kettle::jndisources,
+      content => template('pentaho/jdbc.properties'),
+      order   => '05',
+    }
+  }
   if tagged('mysqlserver') {
     Class['pentaho::database'] -> Pentaho::Datasource[$title]
     if $create_db {
