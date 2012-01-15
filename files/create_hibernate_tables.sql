@@ -240,24 +240,6 @@ CREATE TABLE IF NOT EXISTS `PARAMTYPESMAP` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `PRO_ACLS_LIST`
---
-
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE IF NOT EXISTS `PRO_ACLS_LIST` (
-  `ACL_ID` varchar(100) NOT NULL,
-  `ACL_MASK` int(11) NOT NULL,
-  `RECIP_TYPE` int(11) NOT NULL,
-  `RECIPIENT` varchar(255) NOT NULL,
-  `ACL_POSITION` int(11) NOT NULL,
-  PRIMARY KEY (`ACL_ID`,`ACL_POSITION`),
-  KEY `FKB65646C2B23C5D30` (`ACL_ID`),
-  CONSTRAINT `FKB65646C2B23C5D30` FOREIGN KEY (`ACL_ID`) REFERENCES `PRO_FILES` (`FILE_ID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
 -- Table structure for table `PRO_FILES`
 --
 
@@ -279,6 +261,24 @@ CREATE TABLE IF NOT EXISTS `PRO_FILES` (
   KEY `FK94A87E25CBBBB0EA` (`parent`),
   CONSTRAINT `FK94A87E2569FABF5E` FOREIGN KEY (`CHILD_ID`) REFERENCES `PRO_FILES` (`FILE_ID`),
   CONSTRAINT `FK94A87E25CBBBB0EA` FOREIGN KEY (`parent`) REFERENCES `PRO_FILES` (`FILE_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `PRO_ACLS_LIST`
+--
+
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE IF NOT EXISTS `PRO_ACLS_LIST` (
+  `ACL_ID` varchar(100) NOT NULL,
+  `ACL_MASK` int(11) NOT NULL,
+  `RECIP_TYPE` int(11) NOT NULL,
+  `RECIPIENT` varchar(255) NOT NULL,
+  `ACL_POSITION` int(11) NOT NULL,
+  PRIMARY KEY (`ACL_ID`,`ACL_POSITION`),
+  KEY `FKB65646C2B23C5D30` (`ACL_ID`),
+  CONSTRAINT `FKB65646C2B23C5D30` FOREIGN KEY (`ACL_ID`) REFERENCES `PRO_FILES` (`FILE_ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
