@@ -70,9 +70,11 @@
 					-->
 					<default-acls>
 						<acl-entry role="Admin" acl="FULL_CONTROL" />				<!-- Admin users get all authorities -->
-						<acl-entry role="cto" acl="FULL_CONTROL" />				<!-- CTO gets everything -->
-						<acl-entry role="dev" acl="EXECUTE_SUBSCRIBE" />		<!-- Dev gets execute/subscribe -->
-						<acl-entry role="Authenticated" acl="EXECUTE" />		<!-- Authenticated users get execute only -->
+						<!-- <acl-entry role="cto" acl="FULL_CONTROL" />	-->			<!-- CTO gets everything -->
+						<!-- <acl-entry role="dev" acl="EXECUTE_SUBSCRIBE" />	-->	<!-- Dev gets execute/subscribe -->
+
+						<!-- no default permissions for Authenticated users -->
+						<!-- <acl-entry role="Authenticated" acl="EXECUTE" />	-->	<!-- Authenticated users get execute only -->
 					</default-acls>
 					
 					<!--
@@ -121,7 +123,7 @@
 				  with an extension in this list can have ACLs applied.
 				-->
                 
-				<acl-files>xaction,url,prpt,prpti,xdash,xcdf</acl-files>
+				<acl-files>xaction,url,prpt,prpti,xdash,xcdf,wcdf,cda</acl-files>
 
 				<anonymous-authentication>
 				  <anonymous-user>anonymousUser</anonymous-user>
