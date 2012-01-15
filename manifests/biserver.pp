@@ -17,6 +17,9 @@ class pentaho::biserver {
     ensure  => "latest",
   }
 
+  # refresh the repository
+  # http://reporting.swellpath.com:8088/pentaho/Publish?publish=now&style=popup&class=org.pentaho.platform.engine.services.solution.SolutionPublisher&userid=<admin>&password=<admin-password>
+
   file { "/opt/pentaho/biserver-ce/data/puppet":
     ensure => directory,
     owner  => 'root',
