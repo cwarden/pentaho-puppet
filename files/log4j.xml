@@ -23,8 +23,8 @@
    <!-- A time/date based rolling appender -->
    <appender name="PENTAHOFILE" class="org.apache.log4j.DailyRollingFileAppender">
 
-		<param name="File" value="/opt/pentaho/biserver-ce/tomcat/logs/pentaho.log"/>
-      <param name="Append" value="true"/>
+      <param name="File" value="/opt/pentaho/biserver-ce/tomcat/logs/pentaho.log"/>
+      <param name="Append" value="false"/>
 
       <!-- Rollover at midnight each day -->
       <param name="DatePattern" value="'.'yyyy-MM-dd"/>
@@ -49,7 +49,6 @@
 
    <appender name="PENTAHOCONSOLE" class="org.apache.log4j.ConsoleAppender">
       <param name="Target" value="System.out"/>
-      <param name="Threshold" value="WARN"/>
 
       <layout class="org.apache.log4j.PatternLayout">
          <!-- The default pattern: Date Priority [Category] Message\n -->
@@ -92,6 +91,16 @@
    <category name="org.jfree.JCommon">
       <priority value="ERROR"/>
    </category> 
+
+   <!-- all Acegi Security classes will be set to DEBUG -->
+   <category name="org.acegisecurity">
+     <priority value="DEBUG" />
+   </category>
+
+   <!-- all Pentaho security-related classes will be set to DEBUG -->
+   <category name="com.pentaho.security">
+     <priority value="DEBUG" />
+   </category>
 
    <!-- ======================= -->
    <!-- Setup the Root category -->
