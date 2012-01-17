@@ -84,6 +84,9 @@
 						made in the platform GUI tool.  Uncomment these and change add or delete to your hearts desire -->					
 
 					<overrides>
+						<file path="/pentaho-solutions">
+							<acl-entry role="Authenticated" acl="EXECUTE" />
+						</file>
 						<file path="/pentaho-solutions/admin">
 							<acl-entry role="Admin" acl="FULL_CONTROL" />
 						</file>
