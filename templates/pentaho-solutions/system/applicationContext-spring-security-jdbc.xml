@@ -10,6 +10,8 @@
 
 	<bean id="daoAuthenticationProvider"
 		class="org.springframework.security.providers.dao.DaoAuthenticationProvider">
+		<property name="hideUserNotFoundExceptions" value="false" />
+
 		<property name="userDetailsService">
 			<ref bean="userDetailsService" />
 		</property>
