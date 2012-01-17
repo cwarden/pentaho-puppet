@@ -21,10 +21,12 @@ class pentaho::biserver {
   # http://reporting.swellpath.com:8088/pentaho/Publish?publish=now&style=popup&class=org.pentaho.platform.engine.services.solution.SolutionPublisher&userid=<admin>&password=<admin-password>
 
   file { "/opt/pentaho/biserver-ce/data/puppet":
-    ensure => directory,
-    owner  => 'root',
-    group  => 'root',
-    mode   => '700',
+    ensure  => directory,
+    owner   => 'root',
+    group   => 'root',
+    mode    => '700',
+    recurse => true,
+    purge   => true,
     require => Package['pentaho-bi-server']
   }
 
