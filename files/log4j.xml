@@ -92,15 +92,18 @@
       <priority value="ERROR"/>
    </category> 
 
-   <!-- all Acegi Security classes will be set to DEBUG -->
-   <category name="org.acegisecurity">
-     <priority value="DEBUG" />
-   </category>
+	<!-- all Spring Security classes will be set to DEBUG -->
+	<category name="org.springframework.security">
+		<priority value="DEBUG" />
+	</category>
 
-   <!-- all Pentaho security-related classes will be set to DEBUG -->
-   <category name="com.pentaho.security">
-     <priority value="DEBUG" />
-   </category>
+	<!-- all Pentaho security-related classes will be set to DEBUG -->
+	<category name="org.pentaho.platform.engine.security">
+		<priority value="DEBUG" />
+	</category>
+	<category name="org.pentaho.platform.plugin.services.security">
+		<priority value="DEBUG" />
+	</category>
 
    <!-- ======================= -->
    <!-- Setup the Root category -->
