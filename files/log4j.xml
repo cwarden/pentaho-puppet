@@ -94,15 +94,15 @@
 
 	<!-- all Spring Security classes will be set to DEBUG -->
 	<category name="org.springframework.security">
-		<priority value="DEBUG" />
+		<priority value="WARN" />
 	</category>
 
 	<!-- all Pentaho security-related classes will be set to DEBUG -->
 	<category name="org.pentaho.platform.engine.security">
-		<priority value="DEBUG" />
+		<priority value="WARN" />
 	</category>
 	<category name="org.pentaho.platform.plugin.services.security">
-		<priority value="DEBUG" />
+		<priority value="WARN" />
 	</category>
 
    <!-- ======================= -->
