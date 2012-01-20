@@ -35,6 +35,10 @@ class pentaho::biserver::run {
       ]
     ],
   }
+
+# TODO: trigger refresh of repository after solutions change, e.g.
+# curl -q http://localhost:8080/pentaho/Publish?userid=joe&password=password&publish=now&class=org.pentaho.platform.engine.services.solution.SolutionPublisher
+
 }
 
 
