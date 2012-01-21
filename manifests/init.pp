@@ -13,10 +13,14 @@ class pentaho::java {
   package {
     'openjdk-6-jdk':;
     'default-jdk':;
-    'libmysql-java':;
+    'libmysql-java':
+      notify => Class['pentaho::biserver::run'],
+      ensure => absent;
     'libtcnative-1':;
     # pin at 0.9.1.2-5 until #10315 is fixed, see biserver.pp
-    'libc3p0-java': ensure => '0.9.1.2-5';
+    'libc3p0-java':
+      notify => Class['pentaho::biserver::run'],
+      ensure => '0.9.1.2-5';
   }
 }
 
