@@ -6,6 +6,7 @@ define pentaho::solution($description, $source = "puppet:///modules/pentaho/solu
       source => $source,
       recurse => true,
       owner => 'pentaho',
+      notify => Class['Pentaho::Biserver::Refresh'],
       ensure => 'directory';
     "/opt/pentaho/biserver-ce/pentaho-solutions/${title}/mondrian":
       ensure => 'directory';
