@@ -1,7 +1,8 @@
 # creates database on mysql server. creates config files and database tables on biserver.
 define pentaho::datasource(
-  $type = 'mysql',
-  $driver = 'com.mysql.jdbc.Driver',
+  $database      = $title,
+  $type          = 'mysql',
+  $driver        = 'com.mysql.jdbc.Driver',
   $username,
   $password,
   $tables_schema = false,
@@ -16,7 +17,7 @@ define pentaho::datasource(
   }
 
   # FIXME: this should only depend on tags within the module
-  $url = "jdbc:${type}://${host}:${port}/${title}"
+  $url = "jdbc:${type}://${host}:${port}/${database}"
   if tagged('biserver') {
     if $tables_schema {
       $schema_file = md5($tables_schema)
@@ -28,7 +29,7 @@ define pentaho::datasource(
         source  => $tables_schema
       }
       exec { "create $title schema":
-        command => "mysql -h ${pentaho::config::database_host} -u${username} -p${password} ${title} < ${schema_path}",
+        command => "mysql -h ${pentaho::config::database_host} -u${username} -p${password} ${database} < ${schema_path}",
         refreshonly => true,
         subscribe => [File[$schema_path], Exec['import hibernate']],
       }
@@ -62,7 +63,7 @@ define pentaho::datasource(
   if tagged('mysqlserver') {
     Class['pentaho::database'] -> Pentaho::Datasource[$title]
     if $create_db {
-      mysql::db { $title:
+      mysql::db { $database:
         user     => $username,
         password => $password,
         # TODO: restrict hosts
