@@ -10,8 +10,7 @@ class pentaho::biserver::acls {
   include concat::setup
   $sql_file = '/opt/pentaho/biserver-ce/data/puppet/acls.sql'
   concat { $sql_file:
-    # TODO: find a simpler way to refresh the repository
-    notify  => Service['bi-server']
+    notify  => Class['pentaho::biserver::refresh']
   }
   concat::fragment {
     'acls header':
@@ -29,7 +28,7 @@ class pentaho::biserver::acls {
     refreshonly => true,
     require   => File[$sql_file],
     # This needs to run after new records are inserted into hibernate.PRO_FILES
-    subscribe => Service['bi-server']
+    subscribe => [Service['bi-server'], Class['pentaho::biserver::refresh']]
   }
 }
 
