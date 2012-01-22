@@ -31,7 +31,8 @@ class pentaho::biserver::run {
         '/etc/default/bi-server',
         '/opt/pentaho/biserver-ce/tomcat/conf/Catalina/localhost/pentaho.xml',
         '/opt/pentaho/biserver-ce/tomcat/webapps/pentaho/WEB-INF/web.xml',
-        '/opt/pentaho/biserver-ce/pentaho-solutions/system/pentaho.xml'
+        '/opt/pentaho/biserver-ce/pentaho-solutions/system/pentaho.xml',
+        '/opt/pentaho/biserver-ce/pentaho-solutions/system/hibernate/mysql5.hibernate.cfg.xml'
       ]
     ],
   }
