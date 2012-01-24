@@ -5,7 +5,7 @@ define pentaho::biserver::cda-cached-query($solution, $cdaFile = 'Dashboard1.cda
   $pentaho_host = 'localhost'
   $pentaho_port = $pentaho::config::tomcat_port
 
-  $url_tmpl = "<%
+  $curl_tmpl = "<%
     require 'json'
     require 'uri'
     object = {
@@ -23,12 +23,29 @@ define pentaho::biserver::cda-cached-query($solution, $cdaFile = 'Dashboard1.cda
     url_encoded = URI.encode(json)
     vhost = '${pentaho_host}:${pentaho_port}'
     url = 'http://' + vhost + '/pentaho/content/cda/cacheController?method=change&object=' + url_encoded + '&userid=' + admin + '&password=' + password
-    %><%= url -%>"
+    %>
+#!/bin/bash
 
-  # TODO: write a file and enable refreshonly
-  $url = inline_template($url_tmpl)
+/usr/bin/curl --globoff --silent '<%= url %>'"
+
+  $curl = inline_template($curl_tmpl)
+  $hash = md5($curl)
+  $script_path = "/opt/pentaho/biserver-ce/data/puppet/create-schedule-${hash}.sh"
+
+  file { "${script_path}":
+    owner   => 'root',
+    mode    => '700',
+    content => $curl,
+    notify  => Class['pentaho::biserver::refresh']
+  }
+
   exec { "cache cda query: $title":
-    command => "/usr/bin/curl --globoff --silent '${url}'",
-    logoutput => true,
+    command     => "$script_path | grep '\"status\": \"ok\"'",
+    user        => 'root',
+    group       => 'root',
+    logoutput   => true,
+    refreshonly => true,
+    require     => Class['pentaho::biserver::refresh'],
+    subscribe   => File[$script_path],
   }
 }
