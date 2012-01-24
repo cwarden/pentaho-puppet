@@ -15,6 +15,8 @@ class pentaho::biserver::refresh {
       refreshonly => true;
     'refresh dashboards': # Need to do this separately for now (see http://redmine.webdetails.org/issues/96)
       command     => "curl -s 'http://${pentaho_host}:${pentaho_port}/pentaho/Publish?publish=now&style=popup&class=org.pentaho.platform.plugin.services.pluginmgr.PluginAdapter&userid=${admin}&password=${password}' | grep 'Plugin Community Dashboard Editor has registered successfully'",
+      # FIXME: 15 new connections to MySQL are opened every time this runs.  So restart the BI server for now:
+      notify      => Class['pentaho::biserver::run'],
       logoutput   => true,
       refreshonly => true;
   }
