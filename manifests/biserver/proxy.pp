@@ -39,6 +39,16 @@ class pentaho::biserver::proxy($vhost_name = 'pentaho', $aliases = [], $vhost_po
       fail('SSL certificate (ssl_cert) and SSL Private key (ssl_key) must be defined ')
     }
 
+    nginx::resource::rewrite { 'redirect-biserver-to-ssl':
+      vhost       => 'biserver',
+      ssl         => false,
+      regex       => '^/(.*)$',
+      replacement => 'https://$host/$1',
+      condition   => '$http_host !~ :\d+',
+      description => 'Redirect to ssl site',
+      flag        => 'permanent';
+    }
+
     file {
       '/etc/nginx/ssl':
         ensure => 'directory',
