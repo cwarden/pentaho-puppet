@@ -44,7 +44,7 @@ class pentaho::biserver::proxy($vhost_name = 'pentaho', $aliases = [], $vhost_po
       ssl         => false,
       regex       => '^/(.*)$',
       replacement => "https://${vhost_name}/\$1",
-      condition   => '$http_host !~ :\d+',
+      condition   => "\$http_host = ${vhost_name}",
       description => 'Redirect to ssl site',
       flag        => 'permanent';
     }
