@@ -1,6 +1,6 @@
 class pentaho::cst {
-  include pentaho::apt_source
-  include concat::setup
+  require pentaho::apt_source
+  require concat::setup
   package { "pentaho-cst":
     ensure   => "latest",
     notify   => Service['bi-server'],

@@ -3,7 +3,7 @@ class pentaho::biserver($admin_user = 'admin', $admin_password) {
   # optionally, $admin_user. Additional admin users can be created with
   # pentaho::biserver::user.
   include pentaho::java
-  include pentaho::apt_source
+  require pentaho::apt_source
   include pentaho::biserver::refresh
   include mysql
 

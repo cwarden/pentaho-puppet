@@ -1,5 +1,5 @@
 class pentaho::ctools {
-  include pentaho::apt_source
+  require pentaho::apt_source
   package {
     'ctools':
       ensure   => "latest",
