@@ -35,4 +35,11 @@ class pentaho::apt_source {
       include_src => false,
     }
   }
+
+  exec { "pentaho apt-update":
+    command     => "/usr/bin/apt-get update",
+    subscribe   => Apt::Source['swellpath'],
+    refreshonly => true;
+  }
+
 }
